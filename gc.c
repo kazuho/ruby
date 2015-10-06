@@ -1810,6 +1810,22 @@ rb_newobj_of(VALUE klass, VALUE flags)
     return newobj_of(klass, flags, 0, 0, 0);
 }
 
+extern VALUE rb_str_resurrect_slow(VALUE str);
+
+VALUE
+rb_str_resurrect(VALUE str)
+{
+    if ((RBASIC(str)->flags & (RSTRING_NOEMBED | FL_FREEZE)) == FL_FREEZE) {
+        return newobj_of(rb_cString,
+			  T_STRING | (RGENGC_WB_PROTECTED_STRING ? FL_WB_PROTECTED : 0) |
+			  (RBASIC(str)->flags & (RSTRING_NOEMBED | RSTRING_EMBED_LEN_MASK |
+						 RUBY_ENC_CODERANGE_MASK | RUBY_ENCODING_MASK)),
+			  RANY(str)->as.values.v1, RANY(str)->as.values.v2, RANY(str)->as.values.v3);
+    } else {
+        return rb_str_resurrect_slow(str);
+    }
+}
+
 NODE*
 rb_node_newnode(enum node_type type, VALUE a0, VALUE a1, VALUE a2)
 {

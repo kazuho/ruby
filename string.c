@@ -1248,7 +1248,7 @@ rb_str_dup(VALUE str)
 }
 
 VALUE
-rb_str_resurrect(VALUE str)
+rb_str_resurrect_slow(VALUE str)
 {
     VALUE dup;
     VALUE flags = FL_TEST_RAW(str,
