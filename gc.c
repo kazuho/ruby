@@ -1660,7 +1660,7 @@ heap_get_freeobj(rb_objspace_t *objspace, rb_heap_t *heap)
     RVALUE *p = heap->freelist;
 
     while (1) {
-	if (LIKELY(p != NULL)) {
+	if (UNLIKELY(p != NULL)) {
 	    heap->freelist = p->as.free.next;
 	    return (VALUE)p;
 	}
@@ -1689,37 +1689,9 @@ gc_event_hook_body(rb_thread_t *th, rb_objspace_t *objspace, const rb_event_flag
     } \
 } while (0)
 
-static VALUE
-newobj_of(VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3)
+static inline void
+newobj_post_alloc(VALUE obj, VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3, rb_objspace_t *objspace, int check_event_hook)
 {
-    rb_objspace_t *objspace = &rb_objspace;
-    VALUE obj;
-
-#if GC_DEBUG_STRESS_TO_CLASS
-    if (UNLIKELY(stress_to_class)) {
-	long i, cnt = RARRAY_LEN(stress_to_class);
-	const VALUE *ptr = RARRAY_CONST_PTR(stress_to_class);
-	for (i = 0; i < cnt; ++i) {
-	    if (klass == ptr[i]) rb_memerror();
-	}
-    }
-#endif
-
-    if (UNLIKELY(during_gc || ruby_gc_stressful)) {
-	if (during_gc) {
-	    dont_gc = 1;
-	    during_gc = 0;
-	    rb_bug("object allocation during garbage collection phase");
-	}
-
-	if (ruby_gc_stressful) {
-	    if (!garbage_collect(objspace, FALSE, FALSE, FALSE, GPR_FLAG_NEWOBJ)) {
-		rb_memerror();
-	    }
-	}
-    }
-
-    obj = heap_get_freeobj(objspace, heap_eden);
 
     if (RGENGC_CHECK_MODE > 0) assert(BUILTIN_TYPE(obj) == T_NONE);
 
@@ -1773,7 +1745,8 @@ newobj_of(VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3)
 #endif
 
     objspace->total_allocated_objects++;
-    gc_event_hook(objspace, RUBY_INTERNAL_EVENT_NEWOBJ, obj);
+    if (check_event_hook)
+	gc_event_hook(objspace, RUBY_INTERNAL_EVENT_NEWOBJ, obj);
     gc_report(5, objspace, "newobj: %s\n", obj_info(obj));
 
 #if RGENGC_OLD_NEWOBJ_CHECK > 0
@@ -1795,6 +1768,55 @@ newobj_of(VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3)
     }
 #endif
     check_rvalue_consistency(obj);
+}
+
+__attribute__((noinline))
+static VALUE
+newobj_of_slow(VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3, rb_objspace_t *objspace)
+{
+    VALUE obj;
+
+#if GC_DEBUG_STRESS_TO_CLASS
+    if (UNLIKELY(stress_to_class)) {
+	long i, cnt = RARRAY_LEN(stress_to_class);
+	const VALUE *ptr = RARRAY_CONST_PTR(stress_to_class);
+	for (i = 0; i < cnt; ++i) {
+	    if (klass == ptr[i]) rb_memerror();
+	}
+    }
+#endif
+
+    if (during_gc) {
+	dont_gc = 1;
+	during_gc = 0;
+	rb_bug("object allocation during garbage collection phase");
+    }
+
+    if (ruby_gc_stressful) {
+	if (!garbage_collect(objspace, FALSE, FALSE, FALSE, GPR_FLAG_NEWOBJ)) {
+	    rb_memerror();
+	}
+    }
+
+    obj = heap_get_freeobj(objspace, heap_eden);
+    newobj_post_alloc(obj, klass, flags, v1, v2, v3, objspace, 1);
+    return obj;
+}
+
+static inline VALUE
+newobj_of(VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3)
+{
+    rb_objspace_t *objspace = &rb_objspace;
+    VALUE obj;
+    RVALUE *p;
+
+    if (UNLIKELY(during_gc || ruby_gc_stressful || (objspace->hook_events & RUBY_INTERNAL_EVENT_NEWOBJ) ||
+        (p = heap_eden->freelist) == NULL))
+        return newobj_of_slow(klass, flags, v1, v2, v3, objspace);
+    heap_eden->freelist = p->as.free.next;
+    obj = (VALUE)p;
+
+    newobj_post_alloc(obj, klass, flags, v1, v2, v3, objspace, 0);
     return obj;
 }
 
