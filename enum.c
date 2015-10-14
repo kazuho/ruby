@@ -889,7 +889,7 @@ sort_by_i(RB_BLOCK_CALL_FUNC_ARGLIST(i, _data))
 
     v = rb_yield(i);
 
-    if (RBASIC(ary)->klass) {
+    if (RBASIC_CLASS_P(ary)) {
 	rb_raise(rb_eRuntimeError, "sort_by reentered");
     }
     if (RARRAY_LEN(data->buf) != SORT_BY_BUFSIZE*2) {
@@ -913,7 +913,7 @@ sort_by_cmp(const void *ap, const void *bp, void *data)
     VALUE b;
     VALUE ary = (VALUE)data;
 
-    if (RBASIC(ary)->klass) {
+    if (RBASIC_CLASS_P(ary)) {
 	rb_raise(rb_eRuntimeError, "sort_by reentered");
     }
 
@@ -1031,7 +1031,7 @@ enum_sort_by(VALUE obj)
 		      ruby_qsort(ptr, RARRAY_LEN(ary)/2, 2*sizeof(VALUE),
 				 sort_by_cmp, (void *)ary));
     }
-    if (RBASIC(ary)->klass) {
+    if (RBASIC_CLASS_P(ary)) {
 	rb_raise(rb_eRuntimeError, "sort_by reentered");
     }
     for (i=1; i<RARRAY_LEN(ary); i+=2) {
@@ -1164,7 +1164,7 @@ nmin_cmp(const void *ap, const void *bp, void *_data)
     struct nmin_data *data = (struct nmin_data *)_data;
     VALUE a = *(const VALUE *)ap, b = *(const VALUE *)bp;
     VALUE cmp = rb_funcall(a, id_cmp, 1, b);
-    if (RBASIC(data->buf)->klass) {
+    if (RBASIC_CLASS_P(data->buf)) {
 	rb_raise(rb_eRuntimeError, "%s reentered", data->method);
     }
     return rb_cmpint(cmp, a, b);
@@ -1176,7 +1176,7 @@ nmin_block_cmp(const void *ap, const void *bp, void *_data)
     struct nmin_data *data = (struct nmin_data *)_data;
     VALUE a = *(const VALUE *)ap, b = *(const VALUE *)bp;
     VALUE cmp = rb_yield_values(2, a, b);
-    if (RBASIC(data->buf)->klass) {
+    if (RBASIC_CLASS_P(data->buf)) {
 	rb_raise(rb_eRuntimeError, "%s reentered", data->method);
     }
     return rb_cmpint(cmp, a, b);
@@ -1345,7 +1345,7 @@ nmin_run(VALUE obj, VALUE num, int by, int rev)
     if (rev) {
         rb_ary_reverse(result);
     }
-    *((VALUE *)&RBASIC(result)->klass) = rb_cArray;
+    RBASIC_SET_CLASS_RAW(result, rb_cArray);
     return result;
 
 }

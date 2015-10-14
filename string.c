@@ -1033,7 +1033,7 @@ str_new_frozen(VALUE klass, VALUE orig)
 	    assert(OBJ_FROZEN(shared));
 
 	    if ((ofs > 0) || (rest > 0) ||
-		(klass != RBASIC(shared)->klass) ||
+		(klass != RBASIC_CLASS_RAW(shared)) ||
 		((RBASIC(shared)->flags ^ RBASIC(orig)->flags) & FL_TAINT) ||
 		ENCODING_GET(shared) != ENCODING_GET(orig)) {
 		str = str_new_shared(klass, shared);

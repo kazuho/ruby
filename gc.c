@@ -1136,9 +1136,10 @@ RVALUE_OLD_UNCOLLECTIBLE_SET(rb_objspace_t *objspace, VALUE obj)
     RVALUE_PAGE_OLD_UNCOLLECTIBLE_SET(objspace, GET_HEAP_PAGE(obj), obj);
 }
 
-static inline VALUE
-RVALUE_FLAGS_AGE_SET(VALUE flags, int age)
+static inline unsigned
+RVALUE_FLAGS_AGE_SET(VALUE _flags, int age)
 {
+    unsigned flags = (unsigned)_flags;
     flags &= ~(FL_PROMOTED0 | FL_PROMOTED1);
     flags |= (age << RVALUE_AGE_SHIFT);
     return flags;
@@ -1702,8 +1703,9 @@ gc_event_hook_body(rb_thread_t *th, rb_objspace_t *objspace, const rb_event_flag
 } while (0)
 
 static inline VALUE
-newobj_init(rb_objspace_t *objspace, VALUE klass, VALUE flags, VALUE v1, VALUE v2, VALUE v3, VALUE obj, int hook_needed)
+newobj_init(rb_objspace_t *objspace, VALUE klass, VALUE _flags, VALUE v1, VALUE v2, VALUE v3, VALUE obj, int hook_needed)
 {
+    unsigned flags = (unsigned)_flags;
     if (RGENGC_CHECK_MODE > 0) assert(BUILTIN_TYPE(obj) == T_NONE);
 
     /* OBJSETUP */
@@ -2192,7 +2194,7 @@ obj_free(rb_objspace_t *objspace, VALUE obj)
 
       default:
 	rb_bug("gc_sweep(): unknown data type 0x%x(%p) 0x%"PRIxVALUE,
-	       BUILTIN_TYPE(obj), (void*)obj, RBASIC(obj)->flags);
+	       BUILTIN_TYPE(obj), (void*)obj, (VALUE)RBASIC(obj)->flags);
     }
 
     if (FL_TEST(obj, FL_FINALIZE)) {
@@ -2364,7 +2366,7 @@ internal_object_p(VALUE obj)
 	  case T_ZOMBIE:
 	    break;
 	  default:
-	    if (!p->as.basic.klass) break;
+	    if (!RBASIC_CLASS_P((VALUE)p)) break;
 	    return 0;
 	}
     }
@@ -2930,7 +2932,7 @@ id2ref(VALUE obj, VALUE objid)
     if (!is_live_object(objspace, ptr)) {
 	rb_raise(rb_eRangeError, "%p is recycled object", p0);
     }
-    if (RBASIC(ptr)->klass == 0) {
+    if (!RBASIC_CLASS_P(ptr)) {
 	rb_raise(rb_eRangeError, "%p is internal object", p0);
     }
     return (VALUE)ptr;
@@ -4350,7 +4352,7 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	rb_bug("T_IMEMO: unreachable");
     }
 
-    gc_mark(objspace, any->as.basic.klass);
+    gc_mark(objspace, RBASIC_CLASS(any));
 
     switch (BUILTIN_TYPE(obj)) {
       case T_CLASS:
@@ -8957,11 +8959,11 @@ rb_raw_obj_info(char *buff, const int buff_size, VALUE obj)
     if (internal_object_p(obj)) {
 	/* ignore */
     }
-    else if (RBASIC(obj)->klass == 0) {
+    else if (!RBASIC_CLASS_P(obj)) {
 	snprintf(buff, buff_size, "%s (temporary internal)", buff);
     }
     else {
-	VALUE class_path = rb_class_path_cached(RBASIC(obj)->klass);
+	VALUE class_path = rb_class_path_cached(RBASIC_CLASS_RAW(obj));
 	if (!NIL_P(class_path)) {
 	    snprintf(buff, buff_size, "%s (%s)", buff, RSTRING_PTR(class_path));
 	}

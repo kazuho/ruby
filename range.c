@@ -1233,7 +1233,7 @@ range_dumper(VALUE range)
 static VALUE
 range_loader(VALUE range, VALUE obj)
 {
-    if (!RB_TYPE_P(obj, T_OBJECT) || RBASIC(obj)->klass != rb_cObject) {
+    if (!RB_TYPE_P(obj, T_OBJECT) || RBASIC_CLASS_RAW(obj) != rb_cObject) {
         rb_raise(rb_eTypeError, "not a dumped range object");
     }
 

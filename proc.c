@@ -606,7 +606,7 @@ proc_new(VALUE klass, int8_t is_lambda)
 	    proc->block.proc = newprocval;
 	    return newprocval;
 	}
-	if (RBASIC(procval)->klass == klass) {
+	if (RBASIC_CLASS(procval) == klass) {
 	    return procval;
 	}
 	else {

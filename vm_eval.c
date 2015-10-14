@@ -594,7 +594,7 @@ rb_method_call_status(rb_thread_t *th, const rb_callable_method_entry_t *me, cal
 		VALUE defined_class = klass;
 
 		if (RB_TYPE_P(defined_class, T_ICLASS)) {
-		    defined_class = RBASIC(defined_class)->klass;
+		    defined_class = RBASIC_CLASS(defined_class);
 		}
 
 		if (self == Qundef || !rb_obj_is_kind_of(self, defined_class)) {

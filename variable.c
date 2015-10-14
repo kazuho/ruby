@@ -275,7 +275,7 @@ rb_tmp_class_path(VALUE klass, int *permanent, path_cache_func cache_path)
 	    }
 	    else {
 		int perm;
-		path = rb_tmp_class_path(RBASIC(klass)->klass, &perm, cache_path);
+		path = rb_tmp_class_path(RBASIC_CLASS(klass), &perm, cache_path);
 	    }
 	}
 	*permanent = 0;
@@ -2673,7 +2673,7 @@ static VALUE
 original_module(VALUE c)
 {
     if (RB_TYPE_P(c, T_ICLASS))
-	return RBASIC(c)->klass;
+	return RBASIC_CLASS(c);
     return c;
 }
 

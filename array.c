@@ -2392,7 +2392,7 @@ enum {
 static VALUE
 sort_reentered(VALUE ary)
 {
-    if (RBASIC(ary)->klass) {
+    if (RBASIC_CLASS_P(ary)) {
 	rb_raise(rb_eRuntimeError, "sort reentered");
     }
     return Qnil;
@@ -4434,7 +4434,7 @@ flatten(VALUE ary, int level, int *modified)
 		continue;
 	    }
 	    tmp = rb_check_array_type(elt);
-	    if (RBASIC(result)->klass) {
+	    if (RBASIC_CLASS_P(result)) {
 		rb_raise(rb_eRuntimeError, "flatten reentered");
 	    }
 	    if (NIL_P(tmp)) {
@@ -4843,7 +4843,7 @@ yield_indexed_values(const VALUE values, const long r, const long *const p)
     for (i = 0; i < r; i++) result_array[i] = values_array[p[i]];
     ARY_SET_LEN(result, r);
     rb_yield(result);
-    return !RBASIC(values)->klass;
+    return !RBASIC_CLASS_P(values);
 }
 
 /*

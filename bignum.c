@@ -2929,7 +2929,7 @@ rb_cmpint(VALUE val, VALUE a, VALUE b)
     ((RBASIC(b)->flags & BIGNUM_EMBED_FLAG) ? \
      (void)(RBASIC(b)->flags = \
 	    (RBASIC(b)->flags & ~BIGNUM_EMBED_LEN_MASK) | \
-	    ((l) << BIGNUM_EMBED_LEN_SHIFT)) : \
+	    ((unsigned)(l) << BIGNUM_EMBED_LEN_SHIFT)) : \
      (void)(RBIGNUM(b)->as.heap.len = (l)))
 
 static void

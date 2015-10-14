@@ -87,8 +87,8 @@ rb_any_cmp(VALUE a, VALUE b)
     if (FIXNUM_P(a) && FIXNUM_P(b)) {
 	return a != b;
     }
-    if (RB_TYPE_P(a, T_STRING) && RBASIC(a)->klass == rb_cString &&
-	RB_TYPE_P(b, T_STRING) && RBASIC(b)->klass == rb_cString) {
+    if (RB_TYPE_P(a, T_STRING) && RBASIC_CLASS_RAW(a) == rb_cString &&
+	RB_TYPE_P(b, T_STRING) && RBASIC_CLASS_RAW(b) == rb_cString) {
 	return rb_str_hash_cmp(a, b);
     }
     if (a == Qundef || b == Qundef) return -1;

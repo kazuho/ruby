@@ -862,9 +862,11 @@ enum ruby_fl_type {
     RUBY_FL_SINGLETON = RUBY_FL_USER0
 };
 
+extern VALUE rb_value_base;
+
 struct RBasic {
-    VALUE flags;
-    const VALUE klass;
+    unsigned flags;
+    const unsigned klass_index;
 }
 #ifdef __GNUC__
     __attribute__((aligned(sizeof(VALUE))))
@@ -886,7 +888,9 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
-#define RBASIC_CLASS(obj) (RBASIC(obj)->klass)
+#define RBASIC_CLASS_P(obj) (RBASIC(obj)->klass_index != 0)
+#define RBASIC_CLASS_RAW(obj) (rb_value_base + RBASIC(obj)->klass_index * sizeof(VALUE) * 4)
+#define RBASIC_CLASS(obj) (RBASIC(obj)->klass_index ? RBASIC_CLASS_RAW(obj) : 0)
 
 #define ROBJECT_EMBED_LEN_MAX ROBJECT_EMBED_LEN_MAX
 #define ROBJECT_EMBED ROBJECT_EMBED
@@ -1931,7 +1935,7 @@ rb_class_of(VALUE obj)
 	if (obj == RUBY_Qnil)   return rb_cNilClass;
 	if (obj == RUBY_Qfalse) return rb_cFalseClass;
     }
-    return RBASIC(obj)->klass;
+    return RBASIC_CLASS(obj);
 }
 
 static inline int

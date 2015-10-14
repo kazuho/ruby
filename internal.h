@@ -954,15 +954,21 @@ VALUE rb_class_search_ancestor(VALUE klass, VALUE super);
 double rb_num_to_dbl(VALUE val);
 
 struct RBasicRaw {
-    VALUE flags;
-    VALUE klass;
+    unsigned flags;
+    unsigned klass_index;
 };
 
-#define RBASIC_CLEAR_CLASS(obj)        (((struct RBasicRaw *)((VALUE)(obj)))->klass = 0)
-#define RBASIC_SET_CLASS_RAW(obj, cls) (((struct RBasicRaw *)((VALUE)(obj)))->klass = (cls))
+#define RBASIC_CLEAR_CLASS(obj)        (((struct RBasicRaw *)((VALUE)(obj)))->klass_index = 0)
+static inline VALUE RBASIC_SET_CLASS_RAW(VALUE obj, VALUE cls) {
+    ((struct RBasicRaw *)((VALUE)(obj)))->klass_index = cls ? (unsigned)((cls - rb_value_base) / (sizeof(VALUE) * 4)) : 0;
+    return cls;
+}
 #define RBASIC_SET_CLASS(obj, cls)     do { \
     VALUE _obj_ = (obj); \
-    RB_OBJ_WRITE(_obj_, &((struct RBasicRaw *)(_obj_))->klass, cls); \
+    VALUE _cls_ = (cls); \
+    VALUE _oldv_ = RBASIC_CLASS(_obj_); \
+    RBASIC_SET_CLASS_RAW(_obj_, _cls_); \
+    RB_OBJ_WRITTEN(_obj_, _oldv_, _cls_); \
 } while (0)
 
 /* parse.y */

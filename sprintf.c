@@ -1307,7 +1307,7 @@ ruby__sfvwrite(register rb_printf_buffer *fp, register struct __suio *uio)
     size_t len, n;
     size_t blen = buf - RSTRING_PTR(result), bsiz = fp->_w;
 
-    if (RBASIC(result)->klass) {
+    if (RBASIC_CLASS_P(result)) {
 	rb_raise(rb_eRuntimeError, "rb_vsprintf reentered");
     }
     if ((len = uio->uio_resid) == 0)
@@ -1334,7 +1334,7 @@ ruby__sfvextra(rb_printf_buffer *fp, size_t valsize, void *valp, long *sz, int s
 
     if (valsize != sizeof(VALUE)) return 0;
     value = *(VALUE *)valp;
-    if (RBASIC(result)->klass) {
+    if (RBASIC_CLASS_P(result)) {
 	rb_raise(rb_eRuntimeError, "rb_vsprintf reentered");
     }
     if (sign == '+') {
@@ -1461,7 +1461,7 @@ rb_str_vcatf(VALUE str, const char *fmt, va_list ap)
     f._w = rb_str_capacity(str);
     f._bf._base = (unsigned char *)str;
     f._p = (unsigned char *)RSTRING_END(str);
-    klass = RBASIC(str)->klass;
+    klass = RBASIC_CLASS(str);
     RBASIC_CLEAR_CLASS(str);
     f.vwrite = ruby__sfvwrite;
     f.vextra = ruby__sfvextra;

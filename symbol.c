@@ -796,7 +796,7 @@ rb_id2str(ID id)
     VALUE str;
 
     if ((str = lookup_id_str(id)) != 0) {
-        if (RBASIC(str)->klass == 0)
+        if (!RBASIC_CLASS_P(str))
             RBASIC_SET_CLASS_RAW(str, rb_cString);
 	return str;
     }

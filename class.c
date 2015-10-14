@@ -319,7 +319,7 @@ rb_mod_init_copy(VALUE clone, VALUE orig)
     if (!OBJ_INIT_COPY(clone, orig)) return clone;
     if (!FL_TEST(CLASS_OF(clone), FL_SINGLETON)) {
 	RBASIC_SET_CLASS(clone, rb_singleton_class_clone(orig));
-	rb_singleton_class_attached(RBASIC(clone)->klass, (VALUE)clone);
+	rb_singleton_class_attached(RBASIC_CLASS(clone), (VALUE)clone);
     }
     RCLASS_SET_SUPER(clone, RCLASS_SUPER(orig));
     RCLASS_EXT(clone)->allocator = RCLASS_EXT(orig)->allocator;
@@ -371,7 +371,7 @@ rb_singleton_class_clone(VALUE obj)
 VALUE
 rb_singleton_class_clone_and_attach(VALUE obj, VALUE attach)
 {
-    const VALUE klass = RBASIC(obj)->klass;
+    const VALUE klass = RBASIC_CLASS(obj);
 
     if (!FL_TEST(klass, FL_SINGLETON))
 	return klass;
@@ -408,7 +408,7 @@ rb_singleton_class_clone_and_attach(VALUE obj, VALUE attach)
 	    arg.new_klass = clone;
 	    rb_id_table_foreach(RCLASS_M_TBL(klass), clone_method_i, &arg);
 	}
-	rb_singleton_class_attached(RBASIC(clone)->klass, clone);
+	rb_singleton_class_attached(RBASIC_CLASS(clone), clone);
 	FL_SET(clone, FL_SINGLETON);
 
 	return clone;
@@ -432,7 +432,7 @@ rb_singleton_class_attached(VALUE klass, VALUE obj)
 
 
 
-#define METACLASS_OF(k) RBASIC(k)->klass
+#define METACLASS_OF(k) RBASIC_CLASS(k)
 #define SET_METACLASS_OF(k, cls) RBASIC_SET_CLASS(k, cls)
 
 /*!
@@ -508,7 +508,7 @@ make_metaclass(VALUE klass)
 static inline VALUE
 make_singleton_class(VALUE obj)
 {
-    VALUE orig_class = RBASIC(obj)->klass;
+    VALUE orig_class = RBASIC_CLASS(obj);
     VALUE klass = rb_class_boot(orig_class);
 
     FL_SET(klass, FL_SINGLETON);
@@ -586,7 +586,7 @@ rb_define_class_id(ID id, VALUE super)
 
     if (!super) super = rb_cObject;
     klass = rb_class_new(super);
-    rb_make_metaclass(klass, RBASIC(super)->klass);
+    rb_make_metaclass(klass, RBASIC_CLASS(super));
 
     return klass;
 }
@@ -804,7 +804,7 @@ rb_include_class_new(VALUE module, VALUE super)
     VALUE klass = class_alloc(T_ICLASS, rb_cClass);
 
     if (BUILTIN_TYPE(module) == T_ICLASS) {
-	module = RBASIC(module)->klass;
+	module = RBASIC_CLASS(module);
     }
     if (!RCLASS_IV_TBL(module)) {
 	RCLASS_IV_TBL(module) = st_init_numtable();
@@ -820,7 +820,7 @@ rb_include_class_new(VALUE module, VALUE super)
 
     RCLASS_SET_SUPER(klass, super);
     if (RB_TYPE_P(module, T_ICLASS)) {
-	RBASIC_SET_CLASS(klass, RBASIC(module)->klass);
+	RBASIC_SET_CLASS(klass, RBASIC_CLASS(module));
     }
     else {
 	RBASIC_SET_CLASS(klass, module);
@@ -893,7 +893,7 @@ include_modules_at(const VALUE klass, VALUE c, VALUE module, int search_super)
 
 	{
 	    VALUE m = module;
-	    if (BUILTIN_TYPE(m) == T_ICLASS) m = RBASIC(m)->klass;
+	    if (BUILTIN_TYPE(m) == T_ICLASS) m = RBASIC_CLASS(m);
 	    rb_module_add_to_subclasses_list(m, iclass);
 	}
 
@@ -1000,7 +1000,7 @@ rb_mod_included_modules(VALUE mod)
 
     for (p = RCLASS_SUPER(mod); p; p = RCLASS_SUPER(p)) {
 	if (p != origin && BUILTIN_TYPE(p) == T_ICLASS) {
-	    VALUE m = RBASIC(p)->klass;
+	    VALUE m = RBASIC_CLASS(p);
 	    if (RB_TYPE_P(m, T_MODULE))
 		rb_ary_push(ary, m);
 	}
@@ -1035,7 +1035,7 @@ rb_mod_include_p(VALUE mod, VALUE mod2)
     Check_Type(mod2, T_MODULE);
     for (p = RCLASS_SUPER(mod); p; p = RCLASS_SUPER(p)) {
 	if (BUILTIN_TYPE(p) == T_ICLASS) {
-	    if (RBASIC(p)->klass == mod2) return Qtrue;
+	    if (RBASIC_CLASS(p) == mod2) return Qtrue;
 	}
     }
     return Qfalse;
@@ -1066,7 +1066,7 @@ rb_mod_ancestors(VALUE mod)
 
     for (p = mod; p; p = RCLASS_SUPER(p)) {
 	if (BUILTIN_TYPE(p) == T_ICLASS) {
-	    rb_ary_push(ary, RBASIC(p)->klass);
+	    rb_ary_push(ary, RBASIC_CLASS(p));
 	}
 	else if (p == RCLASS_ORIGIN(p)) {
 	    rb_ary_push(ary, p);
@@ -1568,7 +1568,7 @@ singleton_class_of(VALUE obj)
 	}
     }
 
-    klass = RBASIC(obj)->klass;
+    klass = RBASIC_CLASS(obj);
     if (!(FL_TEST(klass, FL_SINGLETON) &&
 	  rb_ivar_get(klass, id_attached) == obj)) {
 	klass = rb_make_metaclass(obj, klass);
@@ -1613,7 +1613,7 @@ rb_singleton_class_get(VALUE obj)
     if (SPECIAL_CONST_P(obj)) {
 	return rb_special_singleton_class(obj);
     }
-    klass = RBASIC(obj)->klass;
+    klass = RBASIC_CLASS(obj);
     if (!FL_TEST(klass, FL_SINGLETON)) return Qnil;
     if (rb_ivar_get(klass, id_attached) != obj) return Qnil;
     return klass;

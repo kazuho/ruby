@@ -30,7 +30,7 @@
 
 VALUE rb_cISeq;
 
-#define hidden_obj_p(obj) (!SPECIAL_CONST_P(obj) && !RBASIC(obj)->klass)
+#define hidden_obj_p(obj) (!SPECIAL_CONST_P(obj) && !RBASIC_CLASS_P(obj))
 
 static inline VALUE
 obj_resurrect(VALUE obj)

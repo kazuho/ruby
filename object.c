@@ -68,7 +68,7 @@ rb_obj_reveal(VALUE obj, VALUE klass)
 VALUE
 rb_obj_setup(VALUE obj, VALUE klass, VALUE type)
 {
-    RBASIC(obj)->flags = type;
+    RBASIC(obj)->flags = (unsigned)type;
     RBASIC_SET_CLASS(obj, klass);
     return obj;
 }
@@ -1763,7 +1763,7 @@ rb_class_initialize(int argc, VALUE *argv, VALUE klass)
 	}
     }
     RCLASS_SET_SUPER(klass, super);
-    rb_make_metaclass(klass, RBASIC(super)->klass);
+    rb_make_metaclass(klass, RBASIC_CLASS(super));
     rb_class_inherited(super, klass);
     rb_mod_initialize(klass);
 

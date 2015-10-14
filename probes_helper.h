@@ -19,7 +19,7 @@ do { \
 	} \
 	if (_klass) { \
 	    if (RB_TYPE_P(_klass, T_ICLASS)) { \
-		_klass = RBASIC(_klass)->klass; \
+		_klass = RBASIC_CLASS(_klass); \
 	    } \
 	    else if (FL_TEST(_klass, FL_SINGLETON)) { \
 		_klass = rb_iv_get(_klass, "__attached__"); \
