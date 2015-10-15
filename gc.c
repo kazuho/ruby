@@ -398,6 +398,7 @@ typedef struct RVALUE {
 	struct RRational rational;
 	struct RComplex complex;
 	union {
+#if 0
 	    rb_cref_t cref;
 	    struct vm_svar svar;
 	    struct vm_throw_data throw_data;
@@ -405,6 +406,7 @@ typedef struct RVALUE {
 	    struct MEMO memo;
 	    struct rb_method_entry_struct ment;
 	    const rb_iseq_t iseq;
+#endif
 	} imemo;
 	struct {
 	    struct RBasic basic;
@@ -1446,13 +1448,6 @@ heap_page_allocate(rb_objspace_t *objspace)
     int limit = HEAP_OBJ_LIMIT;
 
 fprintf(stderr, "size:%zu\n", sizeof(*start));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.cref));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.svar));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.throw_data));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.ifunc));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.memo));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.ment));
-fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.iseq));
 /*	struct RBasic  basic;
 	    rb_cref_t cref;
 	    struct vm_svar svar;
@@ -1882,6 +1877,7 @@ rb_node_newnode(enum node_type type, VALUE a0, VALUE a1, VALUE a2)
 VALUE
 rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
+assert(!"FIXME");
     VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
     return newobj_of(v0, flags, v1, v2, v3);
 }
@@ -2200,12 +2196,14 @@ obj_free(rb_objspace_t *objspace, VALUE obj)
       case T_IMEMO:
 	{
 	    switch (imemo_type(obj)) {
+#if 0
 	      case imemo_ment:
 		rb_free_method_entry(&RANY(obj)->as.imemo.ment);
 		break;
 	      case imemo_iseq:
 		rb_iseq_free(&RANY(obj)->as.imemo.iseq);
 		break;
+#endif
 	      default:
 		break;
 	    }
@@ -4336,6 +4334,7 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	return;			/* no need to mark class. */
 
       case T_IMEMO:
+#if 0
 	switch (imemo_type(obj)) {
 	  case imemo_none:
 	    rb_bug("unreachable");
@@ -4369,6 +4368,7 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	    rb_iseq_mark((rb_iseq_t *)obj);
 	    return;
 	}
+#endif
 	rb_bug("T_IMEMO: unreachable");
     }
 
@@ -9063,6 +9063,7 @@ rb_raw_obj_info(char *buff, const int buff_size, VALUE obj)
 	  snprintf(buff, buff_size, "%s %s", buff, imemo_name);
 
 	  switch (imemo_type(obj)) {
+#if 0
 	    case imemo_ment: {
 		const rb_method_entry_t *me = &RANY(obj)->as.imemo.ment;
 		snprintf(buff, buff_size, "%s (called_id: %s, type: %s, alias: %d, class: %s)", buff,
@@ -9080,6 +9081,7 @@ rb_raw_obj_info(char *buff, const int buff_size, VALUE obj)
 		}
 		break;
 	    }
+#endif
 	    default:
 	      break;
 	  }
