@@ -7468,16 +7468,13 @@ aligned_malloc(size_t alignment, size_t size)
     if (rb_value_base == 0) {
 	next = mmap(NULL, sizeof(RVALUE) * ((size_t)1 << (8 * sizeof(unsigned))), PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	assert(next != MAP_FAILED);
-fprintf(stderr, "next:%p, mmap size:%zu\n", next, sizeof(RVALUE) * ((size_t)1 << (8 * sizeof(unsigned))));
 	if ((intptr_t)next % alignment != 0)
 	    next += alignment - (intptr_t)next % alignment;
 	assert((intptr_t)next % alignment == 0);
-fprintf(stderr, "adjusted to:%p\n", next);
 	rb_value_base = (VALUE)next;
     }
     size = (size + 4095) & ~4095;
     res = next;
-//    fprintf(stderr, "allocated at %p, size:%zu\n", res, size);
     if (mprotect(next, size, PROT_READ | PROT_WRITE) != 0) {
 	perror("mprotect");
 	abort();

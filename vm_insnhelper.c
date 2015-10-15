@@ -300,7 +300,6 @@ lep_svar_get(rb_thread_t *th, const VALUE *lep, rb_num_t key)
 static struct vm_svar *
 svar_new(VALUE obj)
 {
-fprintf(stderr, "svar_new:%p,%u\n", (void*)obj, (unsigned)RB_INDEX_FROM_VALUE(obj));
     return (struct vm_svar *)rb_imemo_new(imemo_svar, Qnil, Qnil, Qnil, obj);
 }
 
@@ -435,7 +434,6 @@ check_cref(VALUE obj, int can_be_svar)
 	return (rb_cref_t *)obj;
       case imemo_svar:
 	if (can_be_svar) {
-fprintf(stderr, "cref_or_me_index:%u, cref_or_me:%p\n", ((struct vm_svar *)obj)->cref_or_me_index, (void *)RB_VALUE_FROM_INDEX(((struct vm_svar *)obj)->cref_or_me_index));
 	    return check_cref(RB_VALUE_FROM_INDEX(((struct vm_svar *)obj)->cref_or_me_index), FALSE);
 	}
       default:
@@ -2169,7 +2167,6 @@ vm_call_method(rb_thread_t *th, rb_control_frame_t *cfp, struct rb_calling_info 
 	    return vm_call_method_each_type(th, cfp, calling, ci, cc);
 
 	  default:
-fprintf(stderr, "cc->me:%p,cc->me->flags:%x,METHOD_ENTRY_VISI(cc->me):%d\n", cc->me, cc->me->flags, (int)METHOD_ENTRY_VISI(cc->me));
 	    rb_bug("unreachable");
 	}
     }
