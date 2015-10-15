@@ -86,6 +86,7 @@ rb_vm_control_frame_block_ptr(const rb_control_frame_t *cfp)
 static rb_cref_t *
 vm_cref_new(VALUE klass, rb_method_visibility_t visi, const rb_cref_t *prev_cref)
 {
+    rb_cref_t *r;
     union {
 	rb_scope_visibility_t visi;
 	VALUE value;
@@ -93,7 +94,7 @@ vm_cref_new(VALUE klass, rb_method_visibility_t visi, const rb_cref_t *prev_cref
     scope_visi.visi.method_visi = visi;
     scope_visi.visi.module_func = 0;
 
-    rb_cref_t *r = (rb_cref_t *)rb_imemo_new(imemo_cref, Qnil, klass, (VALUE)prev_cref, 0);
+    r = (rb_cref_t *)rb_imemo_new(imemo_cref, Qnil, klass, (VALUE)prev_cref, 0);
     r->scope_visi = scope_visi.visi;
     return r;
 }

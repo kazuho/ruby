@@ -1905,9 +1905,9 @@ rb_node_newnode(enum node_type type, VALUE a0, VALUE a1, VALUE a2)
 VALUE
 rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
+    VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
 fprintf(stderr, "Hmm:%d\n", (int)type);
 assert(type == imemo_ment || type == imemo_iseq || type == imemo_cref || type == imemo_ifunc || type == imemo_svar || type ==imemo_memo);
-    VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
     return newobj_of(v0, flags, v1, v2, v3);
 }
 
