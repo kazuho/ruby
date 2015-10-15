@@ -300,7 +300,7 @@ lep_svar_get(rb_thread_t *th, const VALUE *lep, rb_num_t key)
 static struct vm_svar *
 svar_new(VALUE obj)
 {
-    return (struct vm_svar *)rb_imemo_new(imemo_svar, Qnil, Qnil, Qnil, obj);
+    return (struct vm_svar *)rb_imemo_new(imemo_svar, Qnil, Qnil, Qnil, RB_INDEX_FROM_VALUE(obj));
 }
 
 static void
@@ -383,7 +383,7 @@ check_method_entry(VALUE obj, int can_be_svar)
 	return NULL;
       case imemo_svar:
 	if (can_be_svar) {
-	    return check_method_entry(((struct vm_svar *)obj)->cref_or_me, FALSE);
+	    return check_method_entry(RB_VALUE_FROM_INDEX(((struct vm_svar *)obj)->cref_or_me_index), FALSE);
 	}
       default:
 #if VM_CHECK_MODE > 0
@@ -434,7 +434,7 @@ check_cref(VALUE obj, int can_be_svar)
 	return (rb_cref_t *)obj;
       case imemo_svar:
 	if (can_be_svar) {
-	    return check_cref(((struct vm_svar *)obj)->cref_or_me, FALSE);
+	    return check_cref(RB_VALUE_FROM_INDEX(((struct vm_svar *)obj)->cref_or_me_index), FALSE);
 	}
       default:
 #if VM_CHECK_MODE > 0
@@ -465,7 +465,7 @@ is_cref(const VALUE v, int can_be_svar)
 	  case imemo_cref:
 	    return TRUE;
 	  case imemo_svar:
-	    if (can_be_svar) return is_cref(((struct vm_svar *)v)->cref_or_me, FALSE);
+	    if (can_be_svar) return is_cref(RB_VALUE_FROM_INDEX(((struct vm_svar *)v)->cref_or_me_index), FALSE);
 	  default:
 	    break;
 	}

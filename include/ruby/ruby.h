@@ -888,8 +888,10 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
+#define RB_VALUE_FROM_INDEX(idx) (rb_value_base + (idx) * sizeof(VALUE) * 4)
+#define RB_INDEX_FROM_VALUE(obj) (((VALUE)obj - rb_value_base) / (sizeof(VALUE) * 4))
 #define RBASIC_CLASS_P(obj) (RBASIC(obj)->klass_index != 0)
-#define RBASIC_CLASS_RAW(obj) (rb_value_base + RBASIC(obj)->klass_index * sizeof(VALUE) * 4)
+#define RBASIC_CLASS_RAW(obj) RB_VALUE_FROM_INDEX(RBASIC(obj)->klass_index)
 #define RBASIC_CLASS(obj) (RBASIC(obj)->klass_index ? RBASIC_CLASS_RAW(obj) : 0)
 
 #define ROBJECT_EMBED_LEN_MAX ROBJECT_EMBED_LEN_MAX

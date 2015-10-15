@@ -402,8 +402,8 @@ typedef struct RVALUE {
 	    const rb_iseq_t iseq;
 	    rb_cref_t cref;
 	    struct vm_ifunc ifunc;
-#if 0
 	    struct vm_svar svar;
+#if 0
 	    struct vm_throw_data throw_data;
 	    struct MEMO memo;
 #endif
@@ -1904,7 +1904,7 @@ VALUE
 rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
 fprintf(stderr, "Hmm:%d\n", (int)type);
-assert(type == imemo_ment || type == imemo_iseq || type == imemo_cref || type == imemo_ifunc);
+assert(type == imemo_ment || type == imemo_iseq || type == imemo_cref || type == imemo_ifunc || type == imemo_svar);
     VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
     return newobj_of(v0, flags, v1, v2, v3);
 }
@@ -4364,12 +4364,6 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	  case imemo_none:
 	    rb_bug("unreachable");
 	    return;
-	  case imemo_svar:
-	    gc_mark(objspace, RANY(obj)->as.imemo.svar.cref_or_me);
-	    gc_mark(objspace, RANY(obj)->as.imemo.svar.lastline);
-	    gc_mark(objspace, RANY(obj)->as.imemo.svar.backref);
-	    gc_mark(objspace, RANY(obj)->as.imemo.svar.others);
-	    return;
 	  case imemo_throw_data:
 	    gc_mark(objspace, RANY(obj)->as.imemo.throw_data.throw_obj);
 	    return;
@@ -4379,6 +4373,12 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	    gc_mark_maybe(objspace, RANY(obj)->as.imemo.memo.u3.value);
 	    return;
 #endif
+	  case imemo_svar:
+	    gc_mark(objspace, RB_VALUE_FROM_INDEX(RANY(obj)->as.imemo.svar.cref_or_me_index));
+	    gc_mark(objspace, RANY(obj)->as.imemo.svar.lastline);
+	    gc_mark(objspace, RANY(obj)->as.imemo.svar.backref);
+	    gc_mark(objspace, RANY(obj)->as.imemo.svar.others);
+	    return;
 	  case imemo_ifunc:
 	    gc_mark_maybe(objspace, (VALUE)RANY(obj)->as.imemo.ifunc.data);
 	    return;

@@ -574,7 +574,7 @@ imemo_type(VALUE imemo)
 
 struct vm_svar {
     unsigned flags;
-    unsigned cref_or_me;
+    unsigned cref_or_me_index;
     const VALUE lastline;
     const VALUE backref;
     const VALUE others;
