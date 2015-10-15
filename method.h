@@ -67,6 +67,7 @@ typedef struct rb_callable_method_entry_struct { /* same fields with rb_method_e
 static inline void
 METHOD_ENTRY_VISI_SET(rb_method_entry_t *me, rb_method_visibility_t visi)
 {
+fprintf(stderr, "@@@setting me:%p to %d\n", me, (int)visi);
     VM_ASSERT((int)visi >= 0 && visi <= 3);
     me->flags = (me->flags & ~(IMEMO_FL_USER0 | IMEMO_FL_USER1)) | (visi << IMEMO_FL_USHIFT+0);
 }
@@ -79,6 +80,9 @@ METHOD_ENTRY_BASIC_SET(rb_method_entry_t *me, unsigned int basic)
 static inline void
 METHOD_ENTRY_FLAGS_SET(rb_method_entry_t *me, rb_method_visibility_t visi, unsigned int basic)
 {
+fprintf(stderr, "!!!setting me:%p to %d\n", me, (int)visi);
+fflush(stderr);
+if ((int)visi == 0 && ((uintptr_t)me & 0xfff) == 0x840) abort();
     VM_ASSERT((int)visi >= 0 && visi <= 3);
     VM_ASSERT(basic <= 1);
     me->flags =
@@ -88,6 +92,7 @@ METHOD_ENTRY_FLAGS_SET(rb_method_entry_t *me, rb_method_visibility_t visi, unsig
 static inline void
 METHOD_ENTRY_FLAGS_COPY(rb_method_entry_t *dst, const rb_method_entry_t *src)
 {
+fprintf(stderr, "PPPsetting me:%p to %d\n", dst, (int)METHOD_ENTRY_VISI(src));
     dst->flags =
       (dst->flags & ~(IMEMO_FL_USER0|IMEMO_FL_USER1|IMEMO_FL_USER2)) |
 	(src->flags & (IMEMO_FL_USER0|IMEMO_FL_USER1|IMEMO_FL_USER2));

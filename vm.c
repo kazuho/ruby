@@ -93,7 +93,9 @@ vm_cref_new(VALUE klass, rb_method_visibility_t visi, const rb_cref_t *prev_cref
     scope_visi.visi.method_visi = visi;
     scope_visi.visi.module_func = 0;
 
-    return (rb_cref_t *)rb_imemo_new(imemo_cref, Qnil, klass, (VALUE)prev_cref, scope_visi.value);
+    rb_cref_t *r = (rb_cref_t *)rb_imemo_new(imemo_cref, Qnil, klass, (VALUE)prev_cref, 0);
+    r->scope_visi = scope_visi.visi;
+    return r;
 }
 
 static rb_cref_t *

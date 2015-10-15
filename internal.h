@@ -607,8 +607,8 @@ struct vm_ifunc {
 /* MEMO */
 
 struct MEMO {
-    VALUE flags;
-    VALUE reserved;
+    unsigned flags;
+    unsigned reserved;
     const VALUE v1;
     const VALUE v2;
     union {

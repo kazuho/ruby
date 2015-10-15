@@ -2169,6 +2169,7 @@ vm_call_method(rb_thread_t *th, rb_control_frame_t *cfp, struct rb_calling_info 
 	    return vm_call_method_each_type(th, cfp, calling, ci, cc);
 
 	  default:
+fprintf(stderr, "cc->me:%p,cc->me->flags:%x,METHOD_ENTRY_VISI(cc->me):%d\n", cc->me, cc->me->flags, (int)METHOD_ENTRY_VISI(cc->me));
 	    rb_bug("unreachable");
 	}
     }
