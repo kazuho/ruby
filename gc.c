@@ -404,9 +404,7 @@ typedef struct RVALUE {
 	    struct vm_ifunc ifunc;
 	    struct vm_svar svar;
 	    struct MEMO memo;
-#if 0
 	    struct vm_throw_data throw_data;
-#endif
 	} imemo;
 	struct {
 	    struct RBasic basic;
@@ -1906,8 +1904,6 @@ VALUE
 rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
     VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
-fprintf(stderr, "Hmm:%d\n", (int)type);
-assert(type == imemo_ment || type == imemo_iseq || type == imemo_cref || type == imemo_ifunc || type == imemo_svar || type ==imemo_memo);
     return newobj_of(v0, flags, v1, v2, v3);
 }
 
@@ -4362,14 +4358,12 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 
       case T_IMEMO:
 	switch (imemo_type(obj)) {
-#if 0
 	  case imemo_none:
 	    rb_bug("unreachable");
 	    return;
 	  case imemo_throw_data:
 	    gc_mark(objspace, RANY(obj)->as.imemo.throw_data.throw_obj);
 	    return;
-#endif
 	  case imemo_memo:
 	    gc_mark(objspace, RANY(obj)->as.imemo.memo.v1);
 	    gc_mark(objspace, RANY(obj)->as.imemo.memo.v2);
@@ -7483,7 +7477,7 @@ fprintf(stderr, "adjusted to:%p\n", next);
     }
     size = (size + 4095) & ~4095;
     res = next;
-    fprintf(stderr, "allocated at %p, size:%zu\n", res, size);
+//    fprintf(stderr, "allocated at %p, size:%zu\n", res, size);
     if (mprotect(next, size, PROT_READ | PROT_WRITE) != 0) {
 	perror("mprotect");
 	abort();
@@ -7524,7 +7518,9 @@ fprintf(stderr, "adjusted to:%p\n", next);
 static void
 aligned_free(void *ptr)
 {
-#if defined __MINGW32__
+#if 1
+    /* do nothing for now */
+#elif defined __MINGW32__
     __mingw_aligned_free(ptr);
 #elif defined _WIN32 && !defined __CYGWIN__
     _aligned_free(ptr);
