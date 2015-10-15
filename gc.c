@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <setjmp.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <assert.h>
 
@@ -1444,6 +1445,24 @@ heap_page_allocate(rb_objspace_t *objspace)
     size_t hi, lo, mid;
     int limit = HEAP_OBJ_LIMIT;
 
+fprintf(stderr, "size:%zu\n", sizeof(*start));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.cref));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.svar));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.throw_data));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.ifunc));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.memo));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.ment));
+fprintf(stderr, "free:%zu\n", sizeof(start->as.imemo.iseq));
+/*	struct RBasic  basic;
+	    rb_cref_t cref;
+	    struct vm_svar svar;
+	    struct vm_throw_data throw_data;
+	    struct vm_ifunc ifunc;
+	    struct MEMO memo;
+	    struct rb_method_entry_struct ment;
+	    const rb_iseq_t iseq;
+	*/
+
     /* assign heap_page body (contains heap_page_header and RVALUEs) */
     page_body = (struct heap_page_body *)aligned_malloc(HEAP_ALIGN, HEAP_SIZE);
     if (page_body == 0) {
@@ -1708,6 +1727,7 @@ newobj_init(rb_objspace_t *objspace, VALUE klass, VALUE _flags, VALUE v1, VALUE 
     unsigned flags = (unsigned)_flags;
     if (RGENGC_CHECK_MODE > 0) assert(BUILTIN_TYPE(obj) == T_NONE);
 
+fprintf(stderr, "newobj at: %lx\n", obj);
     /* OBJSETUP */
     RBASIC(obj)->flags = flags & ~FL_WB_PROTECTED;
     RBASIC_SET_CLASS_RAW(obj, klass);
@@ -7414,12 +7434,35 @@ rb_memerror(void)
     rb_exc_raise(nomem_error);
 }
 
+VALUE rb_value_base;
+
 static void *
 aligned_malloc(size_t alignment, size_t size)
 {
     void *res;
 
-#if defined __MINGW32__
+#if 1
+    static char *next;
+    if (rb_value_base == 0) {
+	next = mmap(NULL, sizeof(RVALUE) * ((size_t)1 << (8 * sizeof(unsigned))), PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+	assert(next != MAP_FAILED);
+fprintf(stderr, "next:%p, mmap size:%zu\n", next, sizeof(RVALUE) * ((size_t)1 << (8 * sizeof(unsigned))));
+	if ((intptr_t)next % alignment != 0)
+	    next += alignment - (intptr_t)next % alignment;
+	assert((intptr_t)next % alignment == 0);
+fprintf(stderr, "adjusted to:%p\n", next);
+	rb_value_base = (VALUE)next;
+    }
+    size = (size + 4095) & ~4095;
+    res = next;
+    fprintf(stderr, "allocated at %p, size:%zu\n", res, size);
+    if (mprotect(next, size, PROT_READ | PROT_WRITE) != 0) {
+	perror("mprotect");
+	abort();
+    }
+    next += size;
+    
+#elif defined __MINGW32__
     res = __mingw_aligned_malloc(size, alignment);
 #elif defined _WIN32 && !defined __CYGWIN__
     void *_aligned_malloc(size_t, size_t);
