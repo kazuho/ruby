@@ -573,8 +573,8 @@ imemo_type(VALUE imemo)
 /* SVAR */
 
 struct vm_svar {
-    VALUE flags;
-    const VALUE cref_or_me;
+    unsigned flags;
+    unsigned cref_or_me;
     const VALUE lastline;
     const VALUE backref;
     const VALUE others;
@@ -595,8 +595,8 @@ struct vm_throw_data {
 /* IFUNC */
 
 struct vm_ifunc {
-    VALUE flags;
-    VALUE reserved;
+    unsigned flags;
+    unsigned reserved;
     VALUE (*func)(ANYARGS);
     const void *data;
     ID id;

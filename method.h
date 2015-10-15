@@ -36,11 +36,11 @@ typedef struct rb_scope_visi_struct {
 } rb_scope_visibility_t;
 
 typedef struct rb_cref_struct {
-    VALUE flags;
+    unsigned flags;
+    rb_scope_visibility_t scope_visi;
     const VALUE refinements;
     const VALUE klass;
     struct rb_cref_struct * const next;
-    rb_scope_visibility_t scope_visi;
 } rb_cref_t;
 
 /* method data type */

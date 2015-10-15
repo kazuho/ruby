@@ -373,11 +373,11 @@ struct rb_iseq_variable_body {
 /* T_IMEMO/iseq */
 /* typedef rb_iseq_t is in method.h */
 struct rb_iseq_struct {
-    VALUE flags;
+    unsigned flags;
+    unsigned nd_reserved;
     struct iseq_compile_data *compile_data; /* used at compile time */
     struct rb_iseq_constant_body *body;
     struct rb_iseq_variable_body *variable_body;
-    VALUE dummy2;
 };
 
 enum ruby_special_exceptions {
