@@ -513,7 +513,7 @@ cto_i(void *vstart, void *vend, size_t stride, void *data)
     for (; v != (VALUE)vend; v += stride) {
 	if (RBASIC(v)->flags && BUILTIN_TYPE(v) == T_DATA) {
 	    VALUE counter;
-	    VALUE key = RBASIC(v)->klass;
+	    VALUE key = RBASIC_CLASS(v);
 
 	    if (key == 0) {
 		const char *name = rb_objspace_data_type_name(v);
