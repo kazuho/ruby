@@ -231,8 +231,8 @@ enum node_type {
 };
 
 typedef struct RNode {
-    VALUE flags;
-    VALUE nd_reserved;		/* ex nd_file */
+    unsigned flags;
+    unsigned nd_reserved;		/* ex nd_file */
     union {
 	struct RNode *node;
 	ID id;
@@ -279,7 +279,7 @@ typedef struct RNode {
 #define NODE_LMASK  (((SIGNED_VALUE)1<<(sizeof(VALUE)*CHAR_BIT-NODE_LSHIFT))-1)
 #define nd_line(n) (int)(RNODE(n)->flags>>NODE_LSHIFT)
 #define nd_set_line(n,l) \
-    RNODE(n)->flags=((RNODE(n)->flags&~((VALUE)(-1)<<NODE_LSHIFT))|((VALUE)((l)&NODE_LMASK)<<NODE_LSHIFT))
+    RNODE(n)->flags=(unsigned)((RNODE(n)->flags&~((VALUE)(-1)<<NODE_LSHIFT))|((VALUE)((l)&NODE_LMASK)<<NODE_LSHIFT))
 
 #define nd_refinements_  nd_reserved
 

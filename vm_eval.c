@@ -569,6 +569,7 @@ rb_method_call_status(rb_thread_t *th, const rb_callable_method_entry_t *me, cal
     ID oid;
     rb_method_visibility_t visi;
 
+fprintf(stderr, "%p,%p\n", me, me->def);
     if (UNDEFINED_METHOD_ENTRY_P(me)) {
       undefined:
 	return scope == CALL_VCALL ? MISSING_VCALL : MISSING_NOENTRY;

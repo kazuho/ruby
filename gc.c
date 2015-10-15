@@ -398,13 +398,13 @@ typedef struct RVALUE {
 	struct RRational rational;
 	struct RComplex complex;
 	union {
+	    struct rb_method_entry_struct ment;
 #if 0
 	    rb_cref_t cref;
 	    struct vm_svar svar;
 	    struct vm_throw_data throw_data;
 	    struct vm_ifunc ifunc;
 	    struct MEMO memo;
-	    struct rb_method_entry_struct ment;
 	    const rb_iseq_t iseq;
 #endif
 	} imemo;
@@ -1448,14 +1448,40 @@ heap_page_allocate(rb_objspace_t *objspace)
     int limit = HEAP_OBJ_LIMIT;
 
 fprintf(stderr, "size:%zu\n", sizeof(*start));
-/*	struct RBasic  basic;
-	    rb_cref_t cref;
-	    struct vm_svar svar;
-	    struct vm_throw_data throw_data;
-	    struct vm_ifunc ifunc;
-	    struct MEMO memo;
-	    struct rb_method_entry_struct ment;
-	    const rb_iseq_t iseq;
+fprintf(stderr, "size:%zu\n", sizeof(start->as));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.free));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.array));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.regexp));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.hash));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.data));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.typeddata));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.rstruct));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.bignum));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.file));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.node));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.match));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.rational));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.complex));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.imemo));
+fprintf(stderr, "size!!!:%zu\n", sizeof(start->as.values));
+/*
+	struct RBasic  basic;
+	struct RObject object;
+	struct RClass  klass;
+	struct RFloat  flonum;
+	struct RString string;
+	struct RArray  array;
+	struct RRegexp regexp;
+	struct RHash   hash;
+	struct RData   data;
+	struct RTypedData   typeddata;
+	struct RStruct rstruct;
+	struct RBignum bignum;
+	struct RFile   file;
+	struct RNode   node;
+	struct RMatch  match;
+	struct RRational rational;
+	struct RComplex complex;
 	*/
 
     /* assign heap_page body (contains heap_page_header and RVALUEs) */
@@ -1877,7 +1903,7 @@ rb_node_newnode(enum node_type type, VALUE a0, VALUE a1, VALUE a2)
 VALUE
 rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
-assert(!"FIXME");
+assert(type == imemo_ment);
     VALUE flags = T_IMEMO | (type << FL_USHIFT) | FL_WB_PROTECTED;
     return newobj_of(v0, flags, v1, v2, v3);
 }
@@ -2196,10 +2222,10 @@ obj_free(rb_objspace_t *objspace, VALUE obj)
       case T_IMEMO:
 	{
 	    switch (imemo_type(obj)) {
-#if 0
 	      case imemo_ment:
 		rb_free_method_entry(&RANY(obj)->as.imemo.ment);
 		break;
+#if 0
 	      case imemo_iseq:
 		rb_iseq_free(&RANY(obj)->as.imemo.iseq);
 		break;
@@ -4334,8 +4360,8 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	return;			/* no need to mark class. */
 
       case T_IMEMO:
-#if 0
 	switch (imemo_type(obj)) {
+#if 0
 	  case imemo_none:
 	    rb_bug("unreachable");
 	    return;
@@ -4361,15 +4387,16 @@ gc_mark_children(rb_objspace_t *objspace, VALUE obj)
 	    gc_mark(objspace, RANY(obj)->as.imemo.memo.v2);
 	    gc_mark_maybe(objspace, RANY(obj)->as.imemo.memo.u3.value);
 	    return;
-	  case imemo_ment:
-	    mark_method_entry(objspace, &RANY(obj)->as.imemo.ment);
-	    return;
 	  case imemo_iseq:
 	    rb_iseq_mark((rb_iseq_t *)obj);
 	    return;
-	}
 #endif
-	rb_bug("T_IMEMO: unreachable");
+	  case imemo_ment:
+	    mark_method_entry(objspace, &RANY(obj)->as.imemo.ment);
+	    return;
+	default:
+	    rb_bug("T_IMEMO: unreachable");
+	}
     }
 
     gc_mark(objspace, RBASIC_CLASS(any));

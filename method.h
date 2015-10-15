@@ -46,18 +46,18 @@ typedef struct rb_cref_struct {
 /* method data type */
 
 typedef struct rb_method_entry_struct {
-    VALUE flags;
+    unsigned flags;
+    unsigned called_id;
     const VALUE defined_class;
     struct rb_method_definition_struct * const def;
-    ID called_id;
     const VALUE owner;
 } rb_method_entry_t;
 
 typedef struct rb_callable_method_entry_struct { /* same fields with rb_method_entry_t */
-    VALUE flags;
+    unsigned flags;
+    unsigned called_id;
     const VALUE defined_class;
     struct rb_method_definition_struct * const def;
-    ID called_id;
     const VALUE owner;
 } rb_callable_method_entry_t;
 
