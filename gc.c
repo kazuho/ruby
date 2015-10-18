@@ -7458,6 +7458,22 @@ rb_memerror(void)
 
 VALUE rb_value_base;
 
+static void unprotect(void *p, size_t sz)
+{
+    static const size_t ONEMB = 1<<20;
+    size_t off = (VALUE)p - rb_value_base, max_off = off + sz - 1;
+
+    if (off % ONEMB != 0)
+	off = (off / ONEMB + 1) * ONEMB;
+    while (off < max_off) {
+	if (mprotect((void *)(rb_value_base + off), ONEMB, PROT_READ | PROT_WRITE) != 0) {
+	    perror("mprotect");
+	    abort();
+	}
+	off += ONEMB;
+    }
+}
+
 static void *
 aligned_malloc(size_t alignment, size_t size)
 {
@@ -7473,12 +7489,9 @@ aligned_malloc(size_t alignment, size_t size)
 	assert((intptr_t)next % alignment == 0);
 	rb_value_base = (VALUE)next;
     }
-    size = (size + 4095) & ~4095;
     res = next;
-    if (mprotect(next, size, PROT_READ | PROT_WRITE) != 0) {
-	perror("mprotect");
-	abort();
-    }
+    size = (size + 4095) & ~4095;
+    unprotect(res, size);
     next += size;
     
 #elif defined __MINGW32__

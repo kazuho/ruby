@@ -892,7 +892,7 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
 #define RB_INDEX_FROM_VALUE(obj) (((VALUE)obj - rb_value_base) / (sizeof(VALUE) * 4))
 #define RBASIC_CLASS_P(obj) (RBASIC(obj)->klass_index != 0)
 #define RBASIC_CLASS_RAW(obj) RB_VALUE_FROM_INDEX(RBASIC(obj)->klass_index)
-#define RBASIC_CLASS(obj) (RBASIC(obj)->klass_index ? RBASIC_CLASS_RAW(obj) : 0)
+#define RBASIC_CLASS(obj) rbasic_class((VALUE)obj)
 
 #define ROBJECT_EMBED_LEN_MAX ROBJECT_EMBED_LEN_MAX
 #define ROBJECT_EMBED ROBJECT_EMBED
@@ -1352,6 +1352,14 @@ struct RStruct {
 #define OBJ_FREEZE(x) RB_OBJ_FREEZE(x)
 
 void rb_freeze_singleton_class(VALUE klass);
+
+static inline VALUE
+rbasic_class(VALUE obj)
+{
+    if (__builtin_expect(!!RBASIC_CLASS_P(obj), 1))
+	return RBASIC_CLASS_RAW(obj);
+    return 0;
+}
 
 static inline void
 rb_obj_freeze_inline(VALUE x)
