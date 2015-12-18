@@ -5337,7 +5337,11 @@ iseq_compile_each(rb_iseq_t *iseq, LINK_ANCHOR *ret, NODE * node, int poped)
 	if (!poped) {
 	    node->nd_lit = rb_fstring(node->nd_lit);
 	    if (!ISEQ_COMPILE_DATA(iseq)->option->frozen_string_literal) {
-		ADD_INSN1(ret, line, putstring, node->nd_lit);
+                if (FL_TEST_RAW(node->nd_lit, STR_NOEMBED)) {
+                    ADD_INSN1(ret, line, putstring, node->nd_lit);
+                } else {
+                    ADD_INSN1(ret, line, putstringf, node->nd_lit);
+                }
 	    }
 	    else {
 		if (ISEQ_COMPILE_DATA(iseq)->option->debug_frozen_string_literal || RTEST(ruby_debug)) {

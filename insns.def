@@ -354,6 +354,17 @@ putstring
     val = rb_str_resurrect(str);
 }
 
+DEFINE_INSN
+putstringf
+(VALUE str)
+()
+(VALUE val)
+{
+    val = rb_newobj_of(rb_cString, T_STRING | (RGENGC_WB_PROTECTED_STRING ? FL_WB_PROTECTED : 0));
+    FL_SET_RAW(val, FL_TEST_RAW(str, RSTRING_NOEMBED | RSTRING_EMBED_LEN_MASK | ENC_CODERANGE_MASK | ENCODING_MASK | FL_TAINT));
+    (void)memcpy(RSTRING(val)->as.ary, RSTRING(str)->as.ary, RSTRING_EMBED_LEN_MAX + 1);
+}
+
 /**
   @c put
   @e put concatenate strings
